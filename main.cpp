@@ -19,16 +19,29 @@ public:
         values.clear();  // Clear previous values before loading new data
         string line;
         int errorSpot = 0;
+
+        // Check for and skip BOM. Fixes a very annoying issue with certain types of csv files.
+        char firstChar = file.peek();
+        if (firstChar == '\xEF') { // BOM's first byte
+            char bom[3];
+            file.read(bom, 3); // Read and discard the BOM
+        }
         
         while (getline(file, line)) {
             stringstream ss(line);
             string value;
 
             while (getline(ss, value, ',')) {  // Split on commas for CSV support
-                try {
-                    errorSpot++;
+                errorSpot++;
+
+                // Trim whitespace from value
+                value.erase(remove_if(value.begin(), value.end(), ::isspace), value.end());
+                
+                //cout << "Processing value: '" << value << "'" << endl;  // Debug output
+
+                if (isNumeric(value)) {
                     values.push_back(stod(value));  // Convert to double
-                } catch (const invalid_argument&) {
+                } else {
                     cerr << "Invalid data encountered at position: " << errorSpot << " Skipping." << endl;
                 }
             }
@@ -40,7 +53,7 @@ public:
 
     double findMiddleValue() const {
         if (values.empty()) {
-            cerr << "No data loaded." << endl;
+            cerr << "\nNo data loaded." << endl;
             return 0;
         }
 
@@ -64,18 +77,19 @@ public:
 
     void displayResults() const {
         double middleValue = findMiddleValue();
-        cout << "Middle Value: " << middleValue << endl;
+        cout << "\nMedian Value: " << middleValue << endl;
+        cout << "\nProgram ran successfully. Goodbye.";
     }
-// This is the next one is method that is called to start the program. It uses the other methods within the class to do the work.
+
     void medianExtractor() {  
         string fileName;
-        cout << "Enter the path of the file to load: ";
+        cout << "\nEnter the path of the file to load: ";
         getline(cin, fileName);
 
         fileName = stripQuotes(fileName);
 
         if (!loadFile(fileName)) {
-            cerr << "Exiting program due to file error." << endl;
+            cerr << "\nExiting program due to file error." << endl;
             return;  // Exit the function if file loading failed
         }
 
@@ -84,6 +98,29 @@ public:
 
 private:
     vector<double> values;  
+
+    // Helper function to check if a string represents a valid number
+    bool isNumeric(const string& str) const {
+        if (str.empty()) return false;
+
+        bool decimalPoint = false;
+        size_t start = 0;
+
+        // Allow optional leading minus for negative numbers
+        if (str[start] == '-') {
+            start++;
+        }
+
+        for (size_t i = start; i < str.size(); ++i) {
+            if (str[i] == '.') {
+                if (decimalPoint) return false;  // More than one decimal point
+                decimalPoint = true;
+            } else if (!isdigit(str[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
 };
 
 /////////////// Main is down here //////////////
