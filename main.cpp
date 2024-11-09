@@ -34,7 +34,6 @@ public:
             while (getline(ss, value, ',')) {  // Split on commas for CSV support
                 errorSpot++;
 
-                // Trim whitespace from value
                 value.erase(remove_if(value.begin(), value.end(), ::isspace), value.end());
                 
                 //cout << "Processing value: '" << value << "'" << endl;  // Debug output
@@ -99,7 +98,6 @@ public:
 private:
     vector<double> values;  
 
-    // Helper function to check if a string represents a valid number
     bool isNumeric(const string& str) const {
         if (str.empty()) return false;
 
@@ -129,10 +127,14 @@ int main() {
 
     /////// --- Test area --- ////////
 
-
-    //////////////////////////////////
+    //To test the functions, I included a test .csv file
+    //This is a small file which can be adjusted, making it easy to predict the expected output.
 
     FileReader fileReader;
     
     fileReader.medianExtractor();
+
+    //End of testing
+
+
 }
